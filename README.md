@@ -25,7 +25,9 @@ Identifiers and console messages are in Turkish. The model and scoring files als
 
 ## Requirements
 
-Python 3.10 with the packages in `requirements.txt`: PyTorch, PyTorch Geometric, NumPy, SciPy, pandas, scikit-image, Matplotlib and imageio.
+The packages are listed in `requirements.txt`: PyTorch, PyTorch Geometric, NumPy, SciPy, pandas, scikit-image, Matplotlib and imageio. The training runs of the paper used Python 3.13, PyTorch 2.11, PyTorch Geometric 2.6.1, NumPy 2.1, SciPy 1.16 and scikit-image 0.25 on Linux with NVIDIA T4 GPUs.
+
+Run the commands below from the repository root in a Bash shell (Linux, WSL or Git Bash).
 
 ## Data
 
@@ -33,7 +35,7 @@ MeteoNet is released by Météo-France: <https://meteofrance.github.io/meteonet/
 
 ## Usage
 
-All settings are environment variables. The commands below use the settings of the paper.
+The commands below configure the runs through environment variables and use the settings of the paper.
 
 ### 1. Sequences
 
@@ -41,7 +43,7 @@ All settings are environment variables. The commands below use the settings of t
 DOWNSAMPLE=blockmax INPUT_ROOT=<folder with the unpacked .npz files> OUTPUT_DIR=./data python meteonet_preprocess.py
 ```
 
-This writes `meteonet_nw_train.npy`, `meteonet_nw_val.npy` and `meteonet_nw_test.npy` to `./data`.
+This writes `meteonet_nw_train.npy`, `meteonet_nw_val.npy` and `meteonet_nw_test.npy` to `./data`, with 8,393, 2,081 and 2,114 sequences. The selection file then leaves out the last training sequence and the last validation sequence, which cross a split boundary.
 
 ### 2. Data check and motion fields
 
@@ -77,7 +79,13 @@ MODEL=L SPLIT=val DATA_DIR=./data python analysis/ortak_degerlendirme.py
 MODEL=E SPLIT=val DATA_DIR=./data python analysis/ortak_degerlendirme.py
 ```
 
-`SP_GAT` is LSP-GAT, `SP_BAG` is the no-graph control, `C0` is the ConvLSTM, `L` is Lagrangian persistence and `E` is Eulerian persistence. For the test set, use `SPLIT=test`, and `analysis/ortak_degerlendirme_sp_test.py` for the two superpixel models.
+`SP_GAT` is LSP-GAT, `SP_BAG` is the no-graph control, `C0` is the ConvLSTM, `L` is Lagrangian persistence and `E` is Eulerian persistence. For the test set, use `SPLIT=test`, and `analysis/ortak_degerlendirme_sp_test.py` for the two superpixel models:
+
+```bash
+MODEL=SP_GAT SPLIT=test DATA_DIR=./data CKPT=./outputs/sp_gat_lagrange_res_mse_seed42.pt python analysis/ortak_degerlendirme_sp_test.py
+```
+
+Scoring the superpixel models on the test set also needs the validation data and motion fields.
 
 Each call writes a JSON file with the scores and an `.npz` file with the counts of every sequence to `analysis/`, or to the path given in `OUT`.
 
@@ -89,6 +97,16 @@ Each call writes a JSON file with the scores and an `.npz` file with the counts 
 | `pool16_genel` | CSI after 16 x 16 max pooling |
 | `kutle_orani` | Mass ratio: forecast rain total divided by observed rain total |
 
+## Notes
+
+- The defaults of the scripts are not the settings of the paper. For example, preprocessing defaults to bilinear reduction and the ConvLSTM defaults to a weighted loss. Use the commands above. The two superpixel models stop if the settings of the paper are not given.
+- A new run with the same seed, `TAG_SUFFIX` and `OUT_DIR` overwrites the existing checkpoint. This includes a run with `SMOKE_TEST=1`, so use a separate `OUT_DIR` for trials.
+- If the validation loss of a ConvLSTM run is never finite, no checkpoint is written and an older checkpoint in the same `OUT_DIR` is loaded instead. Check the training log before using a checkpoint.
+- Always pass `CKPT` when a learned model is scored. Without it, the untrained network is scored.
+- `analysis/akis_manifest.py --dogrula` skips motion-field files that are missing. Check that it reports the training, validation and test sets.
+- Use the scores written by the scoring scripts for comparisons. The `_metrics.json` file written during training aggregates the CSI differently.
+- Trained weights are not included.
+
 ## License
 
-MIT. See `LICENSE`.
+MIT. See `LICENSE`. The MeteoNet data have their own licence.

@@ -170,11 +170,9 @@ def main():
         del w
 
     csi_norm = [round(l / RAIN_MAX_MMH, 6) for l in RAIN_LEVELS_MMH]
-    print("\n=== 15a/15b'ye YAPIŞTIR (normalize [0,1] eşikler) ===")
+    print("\n=== normalize [0,1] eşikler ===")
     print(f"  # RAIN_MAX_MMH={RAIN_MAX_MMH}, seviyeler(mm/h)={RAIN_LEVELS_MMH}")
     print(f"  CSI_THRESHOLDS = {csi_norm}")
-    print(f"  # B-MSE bin sınırları da bu 6 eşiğe göre yeniden tanımlanmalı")
-    print(f"  # (bmse_loss içindeki 16/255, 74/255 ... yerine yukarıdaki değerler).")
     print("\nTamamlandı.")
 
 if __name__ == "__main__":
