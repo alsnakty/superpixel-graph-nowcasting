@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+
+# data, motion fields, checkpoints and scores are not tracked
+data/
+outputs/
+*.npy
+*.npz
+*.pt
+analysis/ortak_deg_*
+
+# figures written during training go to figures/<run>/
+figures/*/
