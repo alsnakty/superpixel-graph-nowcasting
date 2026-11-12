@@ -4,6 +4,10 @@ This repository contains the code of LSP-GAT (Lagrangian Superpixel Graph Attent
 
 LSP-GAT forecasts the six radar maps of the next hour, at 10 min steps, as Lagrangian persistence plus a learned correction. A recurrent graph attention network produces the correction, and its nodes are superpixels segmented from the last observed map.
 
+![Observed rain and three forecasts at lead times of 30 and 60 min](figures/forecast_example.png)
+
+Forecasts for one validation sequence (3 January 2018) at lead times of 30 and 60 min. The two learned models are the runs with seed 42. Colours change at the evaluation thresholds. This is a single case, shown for illustration.
+
 ## Files
 
 | File | Role |
