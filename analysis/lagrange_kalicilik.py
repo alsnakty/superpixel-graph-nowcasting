@@ -1,4 +1,4 @@
-# Motion field from optical flow and semi-Lagrangian advection (Lagrangian persistence).
+# Motion field from optical flow and backward advection with one displacement vector per pixel (Lagrangian persistence).
 
 import sys, json, time
 import numpy as np

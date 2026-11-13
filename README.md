@@ -13,13 +13,14 @@ Forecasts for one validation sequence (3 January 2018) at lead times of 30 and 6
 | File | Role |
 |---|---|
 | `meteonet_preprocess.py` | Turns the MeteoNet radar files into 128 x 128 sequences of 25 maps |
-| `analysis/lagrange_kalicilik.py` | Optical flow and semi-Lagrangian advection (Lagrangian persistence) |
+| `analysis/lagrange_kalicilik.py` | Optical flow and backward advection with one displacement vector per pixel (Lagrangian persistence) |
 | `analysis/akis_onhesap.py` | Precomputes the motion field of every sequence |
 | `analysis/akis_manifest.py` | Records that tie a motion-field file to its data file |
 | `analysis/veri_secimi.py` | Selects the sequences of the training, validation and test sets |
 | `analysis/split/strict_split_selection.json` | The selected sequences (8,392 / 2,080 / 2,114) |
 | `meteonet_sp_gat_lagrange.py` | LSP-GAT |
 | `meteonet_sp_bagimsiz_lagrange.py` | No-graph control |
+| `meteonet_iz_gat_lagrange.py` | Regular-block variant: the same network with 4 x 4 pixel blocks as nodes |
 | `meteonet_baseline_convlstm.py` | ConvLSTM |
 | `analysis/ortak_degerlendirme.py` | Scores the ConvLSTM and the two persistence forecasts |
 | `analysis/ortak_degerlendirme_sp.py` | Scores LSP-GAT and the no-graph control on the validation set |
@@ -65,7 +66,7 @@ The first command checks the three data files. The second command estimates one 
 STRICT_SPLIT=1 EVAL_TEST=0 BMSE_WEIGHTS=1,1,1,1,1,1,1 TAG_SUFFIX=_mse SEED=42 DATA_DIR=./data OUT_DIR=./outputs python meteonet_sp_gat_lagrange.py
 ```
 
-Use the same command with `meteonet_sp_bagimsiz_lagrange.py` for the no-graph control and with `meteonet_baseline_convlstm.py` for the ConvLSTM. The paper uses the seeds 42, 123 and 456. `BMSE_WEIGHTS=1,1,1,1,1,1,1` selects the plain mean squared error. Each run writes a checkpoint (`.pt`) and a record (`_metrics.json`) to `OUT_DIR`; the scoring scripts read both.
+Use the same command with `meteonet_sp_bagimsiz_lagrange.py` for the no-graph control, with `meteonet_iz_gat_lagrange.py` for the regular-block variant and with `meteonet_baseline_convlstm.py` for the ConvLSTM. The paper uses the seeds 42, 123 and 456. `BMSE_WEIGHTS=1,1,1,1,1,1,1` selects the plain mean squared error. Each run writes a checkpoint (`.pt`) and a record (`_metrics.json`) to `OUT_DIR`; the scoring scripts read both.
 
 The two superpixel models have built-in checks that run on small synthetic tensors and need no data:
 
@@ -90,6 +91,12 @@ MODEL=SP_GAT SPLIT=test DATA_DIR=./data CKPT=./outputs/sp_gat_lagrange_res_mse_s
 ```
 
 Scoring the superpixel models on the test set also needs the validation data and motion fields.
+
+The regular-block variant is scored on the validation set only, as in the paper:
+
+```bash
+MODEL=IZ_GAT SPLIT=val DATA_DIR=./data CKPT=./outputs/iz_gat_lagrange_res_mse_seed42.pt python analysis/ortak_degerlendirme_sp.py
+```
 
 Each call writes a JSON file with the scores and an `.npz` file with the counts of every sequence to `analysis/`, or to the path given in `OUT`.
 
