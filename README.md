@@ -108,6 +108,23 @@ Each call writes a JSON file with the scores and an `.npz` file with the counts 
 | `pool16_genel` | CSI after 16 x 16 max pooling |
 | `kutle_orani` | Mass ratio: forecast rain total divided by observed rain total |
 
+## Settings
+
+Settings of LSP-GAT and of the training of the three learned models, as used in the paper. The no-graph control uses the same superpixels, encoder and decoder.
+
+| Item | Setting |
+|---|---|
+| Superpixels | SLIC (scikit-image) on the single-channel map with 1,024 requested superpixels, a compactness of 0.1 and connectivity enforced |
+| Encoder | Four 3 x 3 convolutions with 32, 32, 64 and 64 channels, each followed by group normalisation (8 groups) and a leaky ReLU; all 3 x 3 convolutions of the encoder and the decoder use a padding of one pixel |
+| Recurrent network | Two layers with a state of 64 channels; graph attention with four heads of 64 channels, one head for each gate; forget-gate bias initialised to one |
+| Lead-time layer | Learned embedding of 64 channels followed by a linear layer (64 to 64); graph attention with four heads of 16 channels, concatenated, with a residual connection, layer normalisation and a leaky ReLU |
+| Decoder | Four 3 x 3 convolutions with 32, 32, 16 and 1 channels; group normalisation (8, 8 and 4 groups) and a leaky ReLU after each of the first three; last layer initialised to zero |
+| Leaky ReLU | Negative slope of 0.2 in the encoder, the decoder, the attention and the lead-time layer |
+| Optimiser | Adam with a learning rate of 0.001 |
+| Learning-rate schedule | Linear warm-up over the first five epochs, then halving when the validation loss has not improved for five epochs |
+| Batches | Batch size of 4, gradient clipping at norm 1, mixed precision |
+| Stopping | After 15 epochs without improvement of the validation loss, or after 100 epochs |
+
 ## Notes
 
 - The defaults of the scripts are not the settings of the paper. For example, preprocessing defaults to bilinear reduction and the ConvLSTM defaults to a weighted loss. Use the commands above. The two superpixel models stop if the settings of the paper are not given.
