@@ -121,13 +121,14 @@ Settings of LSP-GAT and of the training of the three learned models, as used in 
 | Decoder | Four 3 x 3 convolutions with 32, 32, 16 and 1 channels; group normalisation (8, 8 and 4 groups) and a leaky ReLU after each of the first three; last layer initialised to zero |
 | Leaky ReLU | Negative slope of 0.2 in the encoder, the decoder, the attention and the lead-time layer |
 | Optimiser | Adam with a learning rate of 0.001 |
-| Learning-rate schedule | Linear warm-up over the first five epochs, then halving when the validation loss has not improved for five epochs |
+| Learning-rate schedule | Linear warm-up over the first five epochs, then a reduce-on-plateau scheduler that halves the learning rate with a patience of five epochs (minimum 0.000001) |
 | Batches | Batch size of 4, gradient clipping at norm 1, mixed precision |
 | Stopping | After 15 epochs without improvement of the validation loss, or after 100 epochs |
 
 ## Notes
 
 - The defaults of the scripts are not the settings of the paper. For example, preprocessing defaults to bilinear reduction and the ConvLSTM defaults to a weighted loss. Use the commands above. The two superpixel models stop if the settings of the paper are not given.
+- The ConvLSTM is autoregressive. After the seven input maps have been processed, the last observed map is the first forecasting input, and each later input is the preceding forecast clipped to [0, 1]. This is the default (`ROLLOUT=dup`) and the setting of the paper; leave `ROLLOUT` unset.
 - A new run with the same seed, `TAG_SUFFIX` and `OUT_DIR` overwrites the existing checkpoint. This includes a run with `SMOKE_TEST=1`, so use a separate `OUT_DIR` for trials.
 - If the validation loss of a ConvLSTM run is never finite, no checkpoint is written and an older checkpoint in the same `OUT_DIR` is loaded instead. Check the training log before using a checkpoint.
 - Always pass `CKPT` when a learned model is scored. Without it, the untrained network is scored.
